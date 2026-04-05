@@ -325,7 +325,7 @@ function showApp()  { document.getElementById('view-home').style.display='none';
 function showAuth() { show('modal-auth'); }
 
 async function oauthLogin(provider) {
-  const {error} = await sb.auth.signInWithOAuth({provider, options:{redirectTo: window.location.href}});
+  const {error} = await sb.auth.signInWithOAuth({provider, options:{redirectTo: "https://kevinraphael95.github.io/assembleecitoyenne"}});
   if (error) toast('Erreur : '+error.message);
 }
 async function logout() { await sb.auth.signOut(); }
