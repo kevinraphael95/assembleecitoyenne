@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assemblée Citoyenne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #14171f;
+    --surface2: #1a1e28;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e6df;
+    --muted: #7a7870;
+    --accent: #c9a84c;
+    --accent2: #4a7fc1;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 60px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  nav .btn-auth {
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    padding: 7px 18px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  nav .btn-auth:hover { opacity: .85; }
+
+  /* MAIN LAYOUT */
+  main { display: flex; height: calc(100vh - 60px); overflow: hidden; }
+
+  /* LEFT PANEL */
+  .panel-left {
+    width: 300px;
+    min-width: 260px;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-title {
+    padding: 20px 20px 12px;
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .parti-list { overflow-y: auto; flex: 1; padding: 8px; }
+  .parti-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s;
+    margin-bottom: 2px;
+  }
+  .parti-item:hover { background: var(--surface2); }
+  .parti-item.active { background: var(--surface2); }
+  .parti-swatch {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .parti-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .parti-count {
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .parti-pct {
+    font-size: 11px;
+    color: var(--muted);
+    width: 32px;
+    text-align: right;
+  }
+  .my-parti-badge {
+    font-size: 10px;
+    background: var(--accent);
+    color: #0d0f14;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  /* CENTER */
+  .panel-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .hemicycle-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 24px 0;
+    gap: 8px;
+  }
+  .hemicycle-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    letter-spacing: .01em;
+  }
+  .hemicycle-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  #hemicycle-svg { width: 100%; max-width: 640px; }
+
+  /* TREEMAP */
+  .treemap-wrap {
+    height: 120px;
+    padding: 12px 24px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .treemap-title {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  #treemap {
+    display: flex;
+    height: 80px;
+    gap: 3px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .tm-block {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 4px 2px;
+    cursor: pointer;
+    transition: filter .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tm-block:hover { filter: brightness(1.2); }
+  .tm-block span {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
+
+  /* RIGHT PANEL — votes */
+  .panel-right {
+    width: 320px;
+    min-width: 260px;
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .votes-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .votes-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .votes-header p { font-size: 12px; color: var(--muted); }
+  .vote-list { overflow-y: auto; flex: 1; padding: 12px; }
+  .vote-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .vote-card:hover { border-color: rgba(255,255,255,0.15); }
+  .vote-card.active { border-color: var(--accent); }
+  .vote-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .vote-title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 10px; }
+  .vote-actions { display: flex; gap: 6px; }
+  .btn-vote {
+    flex: 1;
+    padding: 7px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-vote.pour { border-color: #3fa46a; color: #3fa46a; }
+  .btn-vote.pour:hover { background: rgba(63,164,106,.15); }
+  .btn-vote.contre { border-color: #e05252; color: #e05252; }
+  .btn-vote.contre:hover { background: rgba(224,82,82,.15); }
+  .btn-vote.abstention { border-color: var(--muted); color: var(--muted); }
+  .btn-vote.abstention:hover { background: rgba(255,255,255,.06); }
+  .vote-result {
+    display: none;
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .vote-result.show { display: block; }
+  .result-bars { display: flex; flex-direction: column; gap: 5px; }
+  .rbar { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .rbar-label { width: 60px; color: var(--muted); }
+  .rbar-track { flex: 1; height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; }
+  .rbar-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+  .rbar-pct { width: 32px; text-align: right; color: var(--muted); }
+
+  /* MODAL — choix parti */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: min(480px, 90vw);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .modal p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-parti {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .modal-parti:hover { border-color: rgba(255,255,255,.2); }
+  .modal-parti.selected { border-color: var(--accent); }
+  .modal-parti-swatch { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; }
+  .modal-parti-name { font-size: 13px; font-weight: 500; }
+  .modal-parti-desc { font-size: 11px; color: var(--muted); }
+  .modal-actions { margin-top: 20px; display: flex; gap: 10px; }
+  .btn-primary {
+    flex: 1;
+    padding: 11px;
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .btn-primary:hover { opacity: .85; }
+  .btn-ghost {
+    padding: 11px 20px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    main { flex-direction: column; height: auto; overflow: auto; }
+    .panel-left { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+    .panel-right { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+    .panel-center { min-height: 400px; }
+    .treemap-wrap { height: auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span>Assemblée Citoyenne</span>
+  </div>
+  <button class="btn-auth" onclick="showAuthModal()">Se connecter</button>
+</nav>
+
+<main>
+  <!-- Gauche : partis -->
+  <aside class="panel-left">
+    <div class="panel-title">Groupes parlementaires</div>
+    <div class="parti-list" id="parti-list"></div>
+  </aside>
+
+  <!-- Centre : hémicycle + treemap -->
+  <section class="panel-center">
+    <div class="hemicycle-wrap">
+      <div class="hemicycle-label">Assemblée Citoyenne</div>
+      <div class="hemicycle-sub" id="hemicycle-sub">577 sièges · Répartition en temps réel</div>
+      <svg id="hemicycle-svg" viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="treemap-wrap">
+      <div class="treemap-title">Groupes par taille</div>
+      <div id="treemap"></div>
+    </div>
+  </section>
+
+  <!-- Droite : votes -->
+  <aside class="panel-right">
+    <div class="votes-header">
+      <h2>Scrutins récents</h2>
+      <p>Votez comme un député. Résultats comparés.</p>
+    </div>
+    <div class="vote-list" id="vote-list"></div>
+  </aside>
+</main>
+
+<!-- Modal choix parti -->
+<div class="modal-overlay" id="parti-modal" style="display:none">
+  <div class="modal">
+    <h2>Choisir votre groupe</h2>
+    <p>Vous représenterez ce groupe dans l'Assemblée Citoyenne.</p>
+    <div class="modal-grid" id="modal-grid"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="document.getElementById('parti-modal').style.display='none'">Annuler</button>
+      <button class="btn-primary" onclick="confirmParti()">Rejoindre ce groupe →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal auth -->
+<div class="modal-overlay" id="auth-modal" style="display:none">
+  <div class="modal" style="max-width:360px">
+    <h2>Connexion</h2>
+    <p>Connectez-vous pour voter et apparaître dans l'hémicycle.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      <button class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:10px" onclick="loginOAuth('google')">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continuer avec Google
+      </button>
+      <button class="btn-primary" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:10px" onclick="loginOAuth('github')">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Continuer avec GitHub
+      </button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:16px;text-align:center">En vous connectant, vous acceptez nos conditions d'utilisation.</p>
+    <button class="btn-ghost" style="width:100%;margin-top:8px" onclick="document.getElementById('auth-modal').style.display='none'">Fermer</button>
+  </div>
+</div>
+
+<script>
+// ─── Données partis AN (groupes réels 16e législature) ───
+const PARTIS = [
+  { id:'rn',    label:'RN',          full:'Rassemblement National',             color:'#1e3a6e', seats:143, citoyens:0 },
+  { id:'lfi',   label:'LFI',         full:'La France Insoumise',                color:'#c0392b', seats:72,  citoyens:0 },
+  { id:'soc',   label:'SOC',         full:'Parti Socialiste',                   color:'#e74c3c', seats:64,  citoyens:0 },
+  { id:'eco',   label:'ECOLO',       full:'Les Écologistes',                    color:'#27ae60', seats:23,  citoyens:0 },
+  { id:'com',   label:'GDR',         full:'Gauche Démocrate et Républicaine',   color:'#c0392b', seats:22,  citoyens:0 },
+  { id:'liot',  label:'LIOT',        full:'Libertés, Indépendants, Outre-mer…', color:'#7f8c8d', seats:22,  citoyens:0 },
+  { id:'modem', label:'MoDem',       full:'Mouvement Démocrate',                color:'#f39c12', seats:36,  citoyens:0 },
+  { id:'hor',   label:'Horizons',    full:'Horizons',                           color:'#1abc9c', seats:30,  citoyens:0 },
+  { id:'re',    label:'Renaissance', full:'Renaissance',                        color:'#2980b9', seats:99,  citoyens:0 },
+  { id:'lr',    label:'LR',          full:'Les Républicains',                   color:'#2c3e50', seats:62,  citoyens:0 },
+  { id:'udr',   label:'UDR',         full:'Union des Droites pour la République',color:'#34495e', seats:16,  citoyens:0 },
+  { id:'ni',    label:'NI',          full:'Non Inscrits',                       color:'#95a5a6', seats:14,  citoyens:0 },
+];
+
+let myParti = null;
+let selectedPartiInModal = null;
+
+// Simule quelques citoyens connectés
+PARTIS.forEach(p => { p.citoyens = Math.floor(Math.random() * 80 + 5); });
+
+// ─── Scrutins mockés (en prod : fetch API AN) ───
+const SCRUTINS = [
+  {
+    id: 1, tag: 'Budget 2025',
+    title: 'Projet de loi de finances — Article 10 : fiscalité des carburants',
+    an: { pour: 289, contre: 241, abstention: 23, nv: 24 },
+    citoyen: { pour: 0, contre: 0, abstention: 0 }
+  },
+  {
+    id: 2, tag: 'Immigration',
+    title: 'Proposition de loi sur la régularisation des travailleurs sans papiers',
+    an: { pour: 197, contre: 312, abstention: 40, nv: 28 },
+    citoyen: { pour: 0, contre: 0, abstention: 0 }
+  },
+  {
+    id: 3, tag: 'Énergie',
+    title: 'Loi de programmation pluriannuelle de l\'énergie — objectif nucléaire',
+    an: { pour: 356, contre: 175, abstention: 28, nv: 18 },
+    citoyen: { pour: 0, contre: 0, abstention: 0 }
+  },
+  {
+    id: 4, tag: 'Social',
+    title: 'Réforme de l\'assurance chômage — modification des règles d\'indemnisation',
+    an: { pour: 268, contre: 253, abstention: 31, nv: 25 },
+    citoyen: { pour: 0, contre: 0, abstention: 0 }
+  },
+];
+
+// ─── Hémicycle ───
+function buildHemicycle() {
+  const svg = document.getElementById('hemicycle-svg');
+  svg.innerHTML = '';
+  const cx = 320, cy = 300, rows = 8;
+  const startAngle = Math.PI, endAngle = 0;
+  const totalSeats = PARTIS.reduce((s, p) => s + p.seats, 0);
+  let seatList = [];
+  PARTIS.forEach(p => {
+    for (let i = 0; i < p.seats; i++) seatList.push(p);
+  });
+
+  // Répartir sur arcs
+  let placed = 0;
+  for (let r = 0; r < rows; r++) {
+    const frac = (r + 0.5) / rows;
+    const radius = 90 + r * 22;
+    const arcLen = Math.PI * radius;
+    const nSeats = Math.round(seatList.length * (arcLen / (rows * Math.PI * (90 + (rows-1)*11))));
+    const rowSeats = Math.min(nSeats, seatList.length - placed);
+    if (rowSeats <= 0) continue;
+    for (let i = 0; i < rowSeats; i++) {
+      const p = seatList[placed] || PARTIS[PARTIS.length - 1];
+      placed++;
+      const angle = startAngle + (i / (rowSeats - 1 || 1)) * (endAngle - startAngle);
+      const x = cx + radius * Math.cos(angle);
+      const y = cy + radius * Math.sin(angle);
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', 5);
+      circle.setAttribute('fill', p.color);
+      circle.setAttribute('opacity', '0.85');
+      circle.style.cursor = 'pointer';
+      circle.setAttribute('title', p.full);
+      circle.addEventListener('mouseenter', () => highlightParti(p.id));
+      circle.addEventListener('mouseleave', () => highlightParti(null));
+      svg.appendChild(circle);
+    }
+  }
+  // Ligne base
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', cx - 230); line.setAttribute('y1', cy);
+  line.setAttribute('x2', cx + 230); line.setAttribute('y2', cy);
+  line.setAttribute('stroke', 'rgba(255,255,255,0.08)'); line.setAttribute('stroke-width', '1');
+  svg.appendChild(line);
+  // Label centre
+  const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  txt.setAttribute('x', cx); txt.setAttribute('y', cy + 22);
+  txt.setAttribute('text-anchor', 'middle');
+  txt.setAttribute('fill', 'rgba(255,255,255,0.25)');
+  txt.setAttribute('font-size', '11');
+  txt.setAttribute('font-family', 'DM Sans, sans-serif');
+  txt.textContent = '577 sièges';
+  svg.appendChild(txt);
+}
+
+function highlightParti(id) {
+  document.querySelectorAll('.parti-item').forEach(el => {
+    el.style.background = el.dataset.id === id ? 'var(--surface2)' : '';
+  });
+}
+
+// ─── Liste partis ───
+function buildPartiList() {
+  const list = document.getElementById('parti-list');
+  list.innerHTML = '';
+  const total = PARTIS.reduce((s, p) => s + p.citoyens, 0);
+  PARTIS.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'parti-item' + (myParti === p.id ? ' active' : '');
+    el.dataset.id = p.id;
+    el.innerHTML = `
+      <div class="parti-swatch" style="background:${p.color}"></div>
+      <span class="parti-name">${p.full}</span>
+      <span class="parti-count">${p.citoyens}</span>
+      <span class="parti-pct">${total ? Math.round(p.citoyens / total * 100) : 0}%</span>
+      ${myParti === p.id ? '<span class="my-parti-badge">Vous</span>' : ''}
+    `;
+    el.addEventListener('click', () => openPartiModal());
+    list.appendChild(el);
+  });
+}
+
+// ─── Treemap ───
+function buildTreemap() {
+  const tm = document.getElementById('treemap');
+  tm.innerHTML = '';
+  const total = PARTIS.reduce((s, p) => s + p.seats, 0);
+  const sorted = [...PARTIS].sort((a, b) => b.seats - a.seats);
+  sorted.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'tm-block';
+    div.style.width = (p.seats / total * 100) + '%';
+    div.style.background = p.color;
+    div.innerHTML = `<span>${p.label}</span>`;
+    div.title = `${p.full} — ${p.seats} sièges`;
+    tm.appendChild(div);
+  });
+}
+
+// ─── Votes ───
+function buildVotes() {
+  const list = document.getElementById('vote-list');
+  list.innerHTML = '';
+  SCRUTINS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'vote-card';
+    card.id = 'scrutin-' + s.id;
+    const total = s.an.pour + s.an.contre + s.an.abstention;
+    card.innerHTML = `
+      <div class="vote-tag">${s.tag}</div>
+      <div class="vote-title">${s.title}</div>
+      <div class="vote-actions">
+        <button class="btn-vote pour" onclick="voter(${s.id},'pour')">✓ Pour</button>
+        <button class="btn-vote contre" onclick="voter(${s.id},'contre')">✗ Contre</button>
+        <button class="btn-vote abstention" onclick="voter(${s.id},'abstention')">— Abs.</button>
+      </div>
+      <div class="vote-result" id="result-${s.id}">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">AN réel · ${total} votants</div>
+        <div class="result-bars">
+          <div class="rbar">
+            <span class="rbar-label" style="color:#3fa46a">Pour</span>
+            <div class="rbar-track"><div class="rbar-fill" style="background:#3fa46a;width:${Math.round(s.an.pour/total*100)}%"></div></div>
+            <span class="rbar-pct">${Math.round(s.an.pour/total*100)}%</span>
+          </div>
+          <div class="rbar">
+            <span class="rbar-label" style="color:#e05252">Contre</span>
+            <div class="rbar-track"><div class="rbar-fill" style="background:#e05252;width:${Math.round(s.an.contre/total*100)}%"></div></div>
+            <span class="rbar-pct">${Math.round(s.an.contre/total*100)}%</span>
+          </div>
+          <div class="rbar">
+            <span class="rbar-label">Abst.</span>
+            <div class="rbar-track"><div class="rbar-fill" style="background:var(--muted);width:${Math.round(s.an.abstention/total*100)}%"></div></div>
+            <span class="rbar-pct">${Math.round(s.an.abstention/total*100)}%</span>
+          </div>
+        </div>
+        <div id="citoyen-result-${s.id}" style="margin-top:8px;font-size:11px;color:var(--accent)"></div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function voter(id, choix) {
+  const scrutin = SCRUTINS.find(s => s.id === id);
+  if (!scrutin) return;
+  scrutin.citoyen[choix]++;
+  const resultDiv = document.getElementById('result-' + id);
+  resultDiv.classList.add('show');
+  // Mettre à jour le vote citoyen
+  const totalC = scrutin.citoyen.pour + scrutin.citoyen.contre + scrutin.citoyen.abstention;
+  const cr = document.getElementById('citoyen-result-' + id);
+  if (totalC > 0) {
+    const pC = Math.round(scrutin.citoyen.pour / totalC * 100);
+    const cC = Math.round(scrutin.citoyen.contre / totalC * 100);
+    cr.textContent = `Citoyens : ${pC}% pour · ${cC}% contre`;
+  }
+  const card = document.getElementById('scrutin-' + id);
+  card.classList.add('active');
+  // Désactiver les boutons
+  card.querySelectorAll('.btn-vote').forEach(b => {
+    b.disabled = true;
+    b.style.opacity = '0.4';
+  });
+}
+
+// ─── Modal parti ───
+function openPartiModal() {
+  const grid = document.getElementById('modal-grid');
+  grid.innerHTML = '';
+  PARTIS.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'modal-parti' + (selectedPartiInModal === p.id ? ' selected' : '');
+    el.innerHTML = `
+      <div class="modal-parti-swatch" style="background:${p.color}"></div>
+      <div>
+        <div class="modal-parti-name">${p.label}</div>
+        <div class="modal-parti-desc">${p.seats} sièges · ${p.citoyens} citoyens</div>
+      </div>
+    `;
+    el.addEventListener('click', () => {
+      selectedPartiInModal = p.id;
+      grid.querySelectorAll('.modal-parti').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+    grid.appendChild(el);
+  });
+  document.getElementById('parti-modal').style.display = 'flex';
+}
+
+function confirmParti() {
+  if (!selectedPartiInModal) return;
+  myParti = selectedPartiInModal;
+  document.getElementById('parti-modal').style.display = 'none';
+  buildPartiList();
+  const p = PARTIS.find(x => x.id === myParti);
+  document.getElementById('hemicycle-sub').textContent = `577 sièges · Vous êtes dans le groupe ${p.full}`;
+}
+
+function showAuthModal() {
+  document.getElementById('auth-modal').style.display = 'flex';
+}
+
+function loginOAuth(provider) {
+  // En prod : window.location.href = supabase.auth.signInWithOAuth({ provider })
+  alert(`[Prototype] En prod : redirect OAuth ${provider} via Supabase`);
+  document.getElementById('auth-modal').style.display = 'none';
+}
+
+// ─── Init ───
+buildHemicycle();
+buildPartiList();
+buildTreemap();
+buildVotes();
+</script>
+</body>
+</html>
